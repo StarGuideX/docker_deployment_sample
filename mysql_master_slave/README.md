@@ -1,5 +1,6 @@
 # docker_master_slave_sample
-my.cnf配置说明
+## my.cnf配置说明
+
 ```
 [mysqld]
 ## 设置server_id，同一局域网中需要唯一
@@ -44,3 +45,129 @@ binlog-ignore-db=performance_schema
 ## NO_ENGINE_SUBSTITUTION:如果需要的存储引擎被禁用或未编译,那么抛出错误
 sql_mode = STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
 ```
+
+## docker-compose配置说明
+
+```
+version: '3'
+services:
+  mysql_master:
+    container_name: mysql_master
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_DATABASE=test_db
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=123456
+      - MASTER_SYNC_USER=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin
+      - ADMIN_USER=root
+      - ADMIN_PASSWORD=qwer1234
+      - TZ=Asia/Shanghai
+    image: mysql
+    build:
+      context: ./mysql_master
+    ports:
+      - 4306:3306
+    volumes:
+      - ./mysql_master/data:/var/lib/mysql
+    networks:
+      shardingSphere:
+        ipv4_address: 192.168.150.10
+    restart: always
+
+  mysql_slave1:
+    container_name: mysql_slave1
+    image: mysql
+    build:
+      context: ./mysql_slave/slave1
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_DATABASE=test_db
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=123456
+      - MASTER_SYNC_USER=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin
+      - ADMIN_USER=root
+      - ADMIN_PASSWORD=qwer1234
+      - MASTER_HOST=192.168.150.10
+      - MASTER_PORT=4306
+      - TZ=Asia/Shanghai
+    ports:
+      - 5306:3306
+    volumes:
+      - "./mysql_slave/slave1/data:/var/lib/mysql"
+    restart: always
+    networks:
+      shardingSphere:
+        ipv4_address: 192.168.150.11
+    depends_on:
+      - mysql_master
+
+  mysql_slave2:
+    container_name: mysql_slave2
+    image: mysql
+    build:
+      context: ./mysql_slave/slave2
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_DATABASE=test_db
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=123456
+      - MASTER_SYNC_USER=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin
+      - ADMIN_USER=root
+      - ADMIN_PASSWORD=qwer1234
+      - MASTER_HOST=192.168.150.10
+      - MASTER_PORT=4306
+      - TZ=Asia/Shanghai
+    ports:
+      - 5307:3306
+    volumes:
+      - "./mysql_slave/slave2/data:/var/lib/mysql"
+    restart: always
+    networks:
+      shardingSphere:
+        ipv4_address: 192.168.150.12
+    depends_on:
+      - mysql_master
+
+  mysql_slave3:
+    container_name: mysql_slave3
+    image: mysql
+    build:
+      context: ./mysql_slave/slave3
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_DATABASE=test_db
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=123456
+      - MASTER_SYNC_USER=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin
+      - ADMIN_USER=root
+      - ADMIN_PASSWORD=qwer1234
+      - MASTER_HOST=192.168.150.10
+      - MASTER_PORT=4306
+      - TZ=Asia/Shanghai
+    ports:
+      - 5308:3306
+    volumes:
+      - "./mysql_slave/slave3/data:/var/lib/mysql"
+    restart: always
+    networks:
+      shardingSphere:
+        ipv4_address: 192.168.150.13
+    depends_on:
+      - mysql_master
+networks:
+  shardingSphere:
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.150.0/24"
+```
+
+> 提示
+>
+> 由于每个slave都有脚本，且通过`environment`的`MASTER_HOST`和`MASTER_PORT`指定从库，所以需要指定IP
+> 所以使用`docker-compose`创建`networks`和`subnet`，再只当主库和从库的`ipv4_address`
+> 在生产环境中，需根据自己的业务需求去配置`networks`
