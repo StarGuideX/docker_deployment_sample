@@ -54,16 +54,16 @@ services:
   mysql_master:
     container_name: mysql_master
     environment:
-      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_ROOT_PASSWORD=admin123456
       - MYSQL_DATABASE=test_db
       - MYSQL_USER=test
       - MYSQL_PASSWORD=123456
       - MASTER_SYNC_USER=sync_admin
-      - MASTER_SYNC_PASSWORD=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin123456
       - ADMIN_USER=root
-      - ADMIN_PASSWORD=qwer1234
+      - ADMIN_PASSWORD=admin123456
       - TZ=Asia/Shanghai
-    image: mysql
+    image: mysql8_master:latest
     build:
       context: ./mysql_master
     ports:
@@ -77,20 +77,20 @@ services:
 
   mysql_slave1:
     container_name: mysql_slave1
-    image: mysql
+    image: mysql8_slave1:latest
     build:
       context: ./mysql_slave/slave1
     environment:
-      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_ROOT_PASSWORD=admin123456
       - MYSQL_DATABASE=test_db
       - MYSQL_USER=test
       - MYSQL_PASSWORD=123456
       - MASTER_SYNC_USER=sync_admin
-      - MASTER_SYNC_PASSWORD=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin123456
       - ADMIN_USER=root
-      - ADMIN_PASSWORD=qwer1234
+      - ADMIN_PASSWORD=admin123456
       - MASTER_HOST=192.168.150.10
-      - MASTER_PORT=4306
+      - MASTER_PORT=3306
       - TZ=Asia/Shanghai
     ports:
       - 5306:3306
@@ -105,20 +105,20 @@ services:
 
   mysql_slave2:
     container_name: mysql_slave2
-    image: mysql
+    image: mysql8_slave2:latest
     build:
       context: ./mysql_slave/slave2
     environment:
-      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_ROOT_PASSWORD=admin123456
       - MYSQL_DATABASE=test_db
       - MYSQL_USER=test
       - MYSQL_PASSWORD=123456
       - MASTER_SYNC_USER=sync_admin
-      - MASTER_SYNC_PASSWORD=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin123456
       - ADMIN_USER=root
-      - ADMIN_PASSWORD=qwer1234
+      - ADMIN_PASSWORD=admin123456
       - MASTER_HOST=192.168.150.10
-      - MASTER_PORT=4306
+      - MASTER_PORT=3306
       - TZ=Asia/Shanghai
     ports:
       - 5307:3306
@@ -133,20 +133,20 @@ services:
 
   mysql_slave3:
     container_name: mysql_slave3
-    image: mysql
+    image: mysql8_slave3:latest
     build:
       context: ./mysql_slave/slave3
     environment:
-      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_ROOT_PASSWORD=admin123456
       - MYSQL_DATABASE=test_db
       - MYSQL_USER=test
       - MYSQL_PASSWORD=123456
       - MASTER_SYNC_USER=sync_admin
-      - MASTER_SYNC_PASSWORD=sync_admin
+      - MASTER_SYNC_PASSWORD=sync_admin123456
       - ADMIN_USER=root
-      - ADMIN_PASSWORD=qwer1234
+      - ADMIN_PASSWORD=admin123456
       - MASTER_HOST=192.168.150.10
-      - MASTER_PORT=4306
+      - MASTER_PORT=3306
       - TZ=Asia/Shanghai
     ports:
       - 5308:3306
@@ -158,6 +158,7 @@ services:
         ipv4_address: 192.168.150.13
     depends_on:
       - mysql_master
+
 networks:
   shardingSphere:
     ipam:
@@ -168,6 +169,8 @@ networks:
 
 > 提示
 >
+> 1.网络配置
 > 由于每个slave都有脚本，且通过`environment`的`MASTER_HOST`和`MASTER_PORT`指定从库，所以需要指定IP
 > 所以使用`docker-compose`创建`networks`和`subnet`，再只当主库和从库的`ipv4_address`
 > 在生产环境中，需根据自己的业务需求去配置`networks`
+
